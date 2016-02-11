@@ -5,7 +5,7 @@ import java.util.Scanner;
 import java.util.Comparator;
 import java.util.Collections;
 
-public class AppointmentBook {
+public class AppointmentBook implements java.io.Serializable {
 	public ArrayList<Appointment> appointments;
 
 	public AppointmentBook(Appointment... theAppointments) {
@@ -41,21 +41,42 @@ public class AppointmentBook {
 		for (Appointment a : appointments) apptsLeft.add(a);
 		//for (Appointment a : appointments) a.displayAppointment();
 		
+		System.out.println("Checkpoint 1");
 		GregorianCalendar startDate = new GregorianCalendar(startYear, startMonth, startDay);
 		GregorianCalendar endDate = new GregorianCalendar(endYear, endMonth, endDay);	
-
+		
+		int count = 0;
 		while (startDate.getTimeInMillis() < endDate.getTimeInMillis()) {
+			System.out.println("Checkpoint 2");
+			System.out.println(appointments);
+			boolean found = false;
 			for (Appointment a : appointments) {
 				if (a.occursOn(startDate.get(Calendar.YEAR), 
 					       startDate.get(Calendar.MONTH),
 					       startDate.get(Calendar.DAY_OF_MONTH))) {
 					appointmentDates.add((GregorianCalendar) startDate.clone());
 					startDate.add(Calendar.DAY_OF_MONTH, 1);
+					System.out.println(startDate.getTimeInMillis() + "=startdatemillis");
+					System.out.println(endDate.getTimeInMillis() + "=enddatemillis");
+					found = true;
+					
+					// startDate.setTime((new Date(startDate.getTime() + 8640000)));
 					// System.out.println(startDate.get(Calendar.MONTH) + "-" + startDate.get(Calendar.DAY_OF_MONTH) + "-" + startDate.get(Calendar.YEAR));
 					break;
 				}
 			}
+
+			if (!found) {
+				startDate.add(Calendar.DAY_OF_MONTH, 1);
+			}
+
+			count++;
+			System.out.println(startDate.getTimeInMillis());
+			System.out.println("Checkpoint 3");
+			System.out.println("count " + count);
 		}
+
+		System.out.println("Checkpoint 4");
 
 		for (GregorianCalendar g : appointmentDates) {
 			System.out.println(g.get(Calendar.MONTH) + "-" + g.get(Calendar.DAY_OF_MONTH) + "-" + g.get(Calendar.YEAR));
@@ -111,17 +132,36 @@ public class AppointmentBook {
 		GregorianCalendar endDate = new GregorianCalendar(endYear, endMonth, endDay);	
 
 		while (startDate.getTimeInMillis() < endDate.getTimeInMillis()) {
+			System.out.println("Checkpoint 2");
+			System.out.println(appointments);
+			boolean found = false;
 			for (Appointment a : appointments) {
 				if (a.occursOn(startDate.get(Calendar.YEAR), 
 					       startDate.get(Calendar.MONTH),
 					       startDate.get(Calendar.DAY_OF_MONTH))) {
 					appointmentDates.add((GregorianCalendar) startDate.clone());
 					startDate.add(Calendar.DAY_OF_MONTH, 1);
+					System.out.println(startDate.getTimeInMillis() + "=startdatemillis");
+					System.out.println(endDate.getTimeInMillis() + "=enddatemillis");
+					found = true;
+					
+					// startDate.setTime((new Date(startDate.getTime() + 8640000)));
 					// System.out.println(startDate.get(Calendar.MONTH) + "-" + startDate.get(Calendar.DAY_OF_MONTH) + "-" + startDate.get(Calendar.YEAR));
 					break;
 				}
 			}
+
+			if (!found) {
+				startDate.add(Calendar.DAY_OF_MONTH, 1);
+			}
+
+			//count++;
+			System.out.println(startDate.getTimeInMillis());
+			System.out.println("Checkpoint 3");
+			//System.out.println("count " + count);
 		}
+
+		System.out.println("Checkpoint 4");
 
 		for (GregorianCalendar g : appointmentDates) {
 			rs += String.format(g.get(Calendar.MONTH) + "-" + g.get(Calendar.DAY_OF_MONTH) + "-" + g.get(Calendar.YEAR)+"%n");
@@ -144,7 +184,7 @@ public class AppointmentBook {
 	private ArrayList<Appointment> getAppointments() {
 		return this.appointments;
 	}
-	
+/*	
 	public static void main(String... args) {
 		AppointmentBook myAppointmentBook = new AppointmentBook();
 		
@@ -186,5 +226,5 @@ public class AppointmentBook {
 		//myAppointmentBook.displayAppointmentsFromTo(2016, 2016, 10, 10, 3, 4);
 		System.out.print(myAppointmentBook.toString(2016, 2016, 10, 10, 3, 4));	
 		
-	}
+	}*/
 }

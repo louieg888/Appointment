@@ -1,6 +1,6 @@
 import java.util.Calendar;
 
-public abstract class Appointment implements Comparable<Appointment> {
+public abstract class Appointment implements Comparable<Appointment>, java.io.Serializable {
 	private String title;
 	private String description; 
 	private Calendar appointmentDate;

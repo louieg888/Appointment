@@ -4,9 +4,10 @@ import java.io.IOException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.time.YearMonth;
 import java.util.GregorianCalendar;
-import java.util.regex.*;
 import java.util.Arrays;
 import java.awt.*;
 import java.awt.event.*;
@@ -31,9 +32,9 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 	private JTextArea schedule;
 	private JButton showSchedule;
 	
-	private boolean writing;
-	private FileOutputStream out;
-	private FileInputStream in;
+	private boolean connectionSuccessful = false;
+	//private FileOutputStream out;
+	//private FileInputStream in;
 	private File myFile;
 
 	private AppointmentBook myAppBook;
@@ -74,15 +75,31 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		createNewFile.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
+				ObjectOutputStream out = null;
+				FileOutputStream fos = null;
+
 				try {
-					fileName = JOptionPane.showInputDialog("What will the file name be?") + ".txt";
-					File myFile = new File(fileName);
+					fileName = JOptionPane.showInputDialog("What will the file name be?") + ".ser";
+					myFile = new File(fileName);
 					boolean fileCreationSuccessful = myFile.createNewFile();
+					myAppBook = new AppointmentBook();
+					
+					fos = new FileOutputStream(myFile);
+					out = new ObjectOutputStream(fos);
+					
+					out.writeObject(myAppBook);
+
 					//TODO: check if the file creation was successful.
 				} catch (FileNotFoundException e) {
 					JOptionPane.showMessageDialog(initial, "Error. Please try again.");
 				} catch (IOException e) {
 					JOptionPane.showMessageDialog(initial, "Error. Please try again.");
+				} finally {
+					try {
+						if (out != null) out.close();
+					} catch (IOException e) {
+
+					}
 				}
 			}
 		});
@@ -161,7 +178,60 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		
 		JPanel showScheduleButton = new JPanel(new BorderLayout());
 		showSchedule = new JButton("Show schedule");
-		showSchedule.addActionListener(this);
+		showSchedule.addActionListener(new ActionListener() {	
+			//TODO: Add verification mechanism. 
+			
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+				FileInputStream fis = null;
+				ObjectInputStream in = null;
+				System.out.println("File connection: " + myFile.exists());
+
+				try {
+					fis = new FileInputStream(myFile);
+					in = new ObjectInputStream(fis);
+					myAppBook = (AppointmentBook) in.readObject();
+					System.out.println("here 1");
+					int sYear = Integer.parseInt((String)entryBoxes[STARTING_YEARS].getSelectedItem());
+					int eYear = Integer.parseInt((String)entryBoxes[ENDING_YEARS].getSelectedItem());
+					int sDay = Integer.parseInt((String)entryBoxes[STARTING_DAYS].getSelectedItem());
+					int eDay = Integer.parseInt((String)entryBoxes[ENDING_DAYS].getSelectedItem());
+					int sMonth = AppointmentBookGUI.monthToNumber((String)entryBoxes[STARTING_MONTHS].getSelectedItem());
+					int eMonth = AppointmentBookGUI.monthToNumber((String)entryBoxes[ENDING_MONTHS].getSelectedItem());
+					System.out.println(sYear);
+					System.out.println(eYear);
+					System.out.println(sDay);
+					System.out.println(eDay);
+					System.out.println(sMonth);
+					System.out.println(eMonth);
+					String str = myAppBook.toString(sYear, eYear, sDay, eDay, sMonth, eMonth);
+					System.out.println(str);
+					//myAppBook.displayAppointmentsFromTo(sYear, eYear, sDay, eDay, sMonth, eMonth);
+					schedule.setText(myAppBook.toString(
+						Integer.parseInt((String)entryBoxes[STARTING_YEARS].getSelectedItem()),
+						Integer.parseInt((String)entryBoxes[ENDING_YEARS].getSelectedItem()),
+						Integer.parseInt((String)entryBoxes[STARTING_DAYS].getSelectedItem()),
+						Integer.parseInt((String)entryBoxes[ENDING_DAYS].getSelectedItem()),
+						AppointmentBookGUI.monthToNumber((String)entryBoxes[STARTING_MONTHS].getSelectedItem()),
+						AppointmentBookGUI.monthToNumber((String)entryBoxes[ENDING_MONTHS].getSelectedItem())
+					));
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} catch (ClassNotFoundException e) {
+				
+				} finally {
+					if (in != null) {
+						try {
+							in.close();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		});
 
 		showScheduleButton.add(showSchedule);
 		show.add(showScheduleButton);
@@ -172,7 +242,6 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		// ADD TAB
 		
 		JPanel entryFields = new JPanel(new GridLayout(10, 2));
-		
 
 		entryFields.add(new JLabel("Title: "));
 		JTextField titleField = new JTextField();
@@ -219,11 +288,166 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		JButton submitButton = new JButton("Submit");
 		entryFields.add(submitButton);
 		entryFields.add(clearButton);
+		clearButton.addActionListener(new ActionListener() {
+			@Override public void actionPerformed(ActionEvent ae) {
+				titleField.setText("");
+				descriptionArea.setText("");
+				yearField.setText(Calendar.getInstance().get(Calendar.YEAR) + "");
+				monthField.setText("");
+				dayField.setText("");
+				hourField.setText("");
+				minuteField.setText("");
+				amOrPm.setSelectedIndex(0);
+				eventTypeOptions.setSelectedIndex(0);
+			}
+		});
+
+		submitButton.addActionListener(new ActionListener() {
+			@Override 
+			public void actionPerformed(ActionEvent ae) {
+				boolean dataVerified = allFieldsVerified();
+				System.out.println(dataVerified);
+				if (dataVerified) {
+					String title = titleField.getText();
+					String description = descriptionArea.getText();
+					int year = Integer.parseInt(yearField.getText());
+					int month = AppointmentBookGUI.monthToNumber(monthField.getText());
+					int day = Integer.parseInt(dayField.getText());
+					int hour = Integer.parseInt(hourField.getText());
+					int minute = Integer.parseInt(minuteField.getText());
+					boolean isAM = (amOrPm.getSelectedItem().equals("AM"))? true : false;
+
+					if (eventTypeOptions.getSelectedItem().equals("Onetime")) {
+						
+					} else if ( eventTypeOptions.getSelectedItem().equals("Monthly")) {
+						FileOutputStream fos = null;
+						ObjectOutputStream out = null;
+						FileInputStream fis = null;
+						ObjectInputStream in = null;
+						System.out.println("File connection: " + myFile.exists());
+
+						try {
+							fis = new FileInputStream(myFile);
+							in = new ObjectInputStream(fis);
+							myAppBook = (AppointmentBook) in.readObject();
+							myAppBook.add(new Monthly(title, description, day, hour, minute, isAM));
+							
+							fos = new FileOutputStream(myFile);
+							out = new ObjectOutputStream(fos);
+							out.writeObject(myAppBook);
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						} catch (IOException e) {
+							e.printStackTrace();
+						} catch (ClassNotFoundException e) {
+						
+						} finally {
+							if (out != null) {
+								try {
+									out.close();
+								} catch (IOException e) {
+								
+								}
+							}
+
+							if (in != null) {
+								try {
+									in.close();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+							}
+						}	
+					} else if (eventTypeOptions.getSelectedItem().equals("Daily")) {
+							
+					} 
+					
+					titleField.setText("");
+					descriptionArea.setText("");
+					yearField.setText(Calendar.getInstance().get(Calendar.YEAR) + "");
+					monthField.setText("");
+					dayField.setText("");
+					hourField.setText("");
+					minuteField.setText("");
+					amOrPm.setSelectedIndex(0);
+					eventTypeOptions.setSelectedIndex(0);
+
+					JOptionPane.showMessageDialog(add, "Successful submission!");
+				}
+
+			}
+
+			public boolean minuteFieldIsVerified() {
+				try {
+					int minutes = Integer.parseInt(minuteField.getText());
+					return minutes < 60 && minutes >= 0;
+				} catch (NumberFormatException e) {
+					JOptionPane.showMessageDialog(add, "Invalid minute field.");
+					return false;
+				}
+			}
+
+			public boolean hourFieldIsVerified() {
+				try {
+					int hours = Integer.parseInt(hourField.getText());
+					return hours <= 12 && hours > 0;
+				} catch (NumberFormatException e) {
+					JOptionPane.showMessageDialog(add, "Invalid hour field.");
+					return false;
+				}
+			}	
+		
+			public boolean dateIsVerified() {
+				try { 
+					int year = Integer.parseInt(yearField.getText());
+					int month = AppointmentBookGUI.monthToNumber(monthField.getText());
+					int day = Integer.parseInt(dayField.getText());
+					YearMonth ym = YearMonth.of(year, month);
+					return ym.isValidDay(day);
+				} catch (NumberFormatException e) {
+					return false;
+				}
+			}
+
+			public boolean titleIsVerified() {
+				return (titleField.getText() != null) && (titleField.getText() != "");
+			}
+
+			public boolean descriptionIsVerified() {
+				return (descriptionArea.getText() != null) && (descriptionArea.getText() != "");
+			}
+
+			public boolean amPmIsVerified() {
+				return amOrPm.getSelectedIndex() != 0 && amOrPm.getSelectedIndex() != 1;
+			}
+
+			public boolean eventTypeOptionsIsVerified() {
+				return eventTypeOptions.getSelectedIndex() != 0 && eventTypeOptions.getSelectedIndex() != 1; 
+			}
+
+			public boolean allFieldsVerified() {
+				boolean debug = true;
+				if (debug) {
+					System.out.println(minuteFieldIsVerified());
+					System.out.println(hourFieldIsVerified());
+					System.out.println(dateIsVerified());
+					System.out.println(titleIsVerified());
+					System.out.println(descriptionIsVerified());
+					System.out.println(amPmIsVerified());
+					System.out.println(eventTypeOptionsIsVerified());
+				}
+				return minuteFieldIsVerified() 
+					&& hourFieldIsVerified() 
+					&& dateIsVerified()
+					&& titleIsVerified() 
+					&& descriptionIsVerified() 
+					&& amPmIsVerified() 
+					&& eventTypeOptionsIsVerified();
+			}
+		});
 
 		add.add(entryFields);
 		setVisible(true);
-
-
 	}
 	
 	public void initializeShowTab() {
@@ -275,7 +499,7 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		System.out.println(s);
 	}
 
-	private int monthToNumber(String s) {
+	public static int monthToNumber(String s) {
 		int rn = 0; 
 		switch (s.toLowerCase()) {
 			case "january":
@@ -324,10 +548,10 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 			YearMonth startYM = YearMonth.of(startYearInt, startMonthInt);
 			YearMonth endYM = YearMonth.of(endYearInt, endMonthInt);
 			if (!(startYM.isValidDay(startDayInt) && endYM.isValidDay(endDayInt))) {System.out.println("here!");return false;}
-			System.out.println("Here4");
+			//System.out.println("Here4");
 			return (startYM.isBefore(endYM));
 		} catch (NumberFormatException e) {
-			System.out.println("here 2");
+			//System.out.println("here 2");
 			return false;
 		}
 	}
