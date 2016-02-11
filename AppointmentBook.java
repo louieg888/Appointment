@@ -99,10 +99,52 @@ public class AppointmentBook {
 		return appointments;
 	}
 
-	public String toString() {
-		return "implement later"; 	
+	public String toString(int startYear, int endYear, int startDay, int endDay, int startMonth, int endMonth) {
+		String rs = "";
+		Collections.sort(appointments);
+		ArrayList<Appointment> apptsLeft = new ArrayList<Appointment>();
+		ArrayList<GregorianCalendar> appointmentDates = new ArrayList<GregorianCalendar>();
+		for (Appointment a : appointments) apptsLeft.add(a);
+		//for (Appointment a : appointments) a.displayAppointment();
+		
+		GregorianCalendar startDate = new GregorianCalendar(startYear, startMonth, startDay);
+		GregorianCalendar endDate = new GregorianCalendar(endYear, endMonth, endDay);	
+
+		while (startDate.getTimeInMillis() < endDate.getTimeInMillis()) {
+			for (Appointment a : appointments) {
+				if (a.occursOn(startDate.get(Calendar.YEAR), 
+					       startDate.get(Calendar.MONTH),
+					       startDate.get(Calendar.DAY_OF_MONTH))) {
+					appointmentDates.add((GregorianCalendar) startDate.clone());
+					startDate.add(Calendar.DAY_OF_MONTH, 1);
+					// System.out.println(startDate.get(Calendar.MONTH) + "-" + startDate.get(Calendar.DAY_OF_MONTH) + "-" + startDate.get(Calendar.YEAR));
+					break;
+				}
+			}
+		}
+
+		for (GregorianCalendar g : appointmentDates) {
+			rs += String.format(g.get(Calendar.MONTH) + "-" + g.get(Calendar.DAY_OF_MONTH) + "-" + g.get(Calendar.YEAR)+"%n");
+			ArrayList<Appointment> theseAppointments = new ArrayList<Appointment>();
+			for (Appointment a : appointments) {	
+				if (a.occursOn(g.get(Calendar.YEAR), 
+					       g.get(Calendar.MONTH),
+					       g.get(Calendar.DAY_OF_MONTH))) {
+					theseAppointments.add(a);
+				}
+			}
+			
+			AppointmentBook tempAB = new AppointmentBook(theseAppointments);
+			tempAB.sortAppointments();
+			for (Appointment a : tempAB.getAppointments()) rs += a.toString();
+		}
+		return rs;
 	}
 
+	private ArrayList<Appointment> getAppointments() {
+		return this.appointments;
+	}
+	
 	public static void main(String... args) {
 		AppointmentBook myAppointmentBook = new AppointmentBook();
 		
@@ -141,8 +183,8 @@ public class AppointmentBook {
 		for (Appointment a:myAppointmentBook.getApptList()) a.displayAppointment();
 
 		//myAppointmentBook.findAppointmentsOn(2016, 3, 20).get(0).displayAppointment();
-		myAppointmentBook.displayAppointmentsFromTo(2016, 2016, 10, 10, 3, 4);
-		
+		//myAppointmentBook.displayAppointmentsFromTo(2016, 2016, 10, 10, 3, 4);
+		System.out.print(myAppointmentBook.toString(2016, 2016, 10, 10, 3, 4));	
 		
 	}
 }

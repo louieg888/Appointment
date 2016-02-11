@@ -110,11 +110,20 @@ public abstract class Appointment implements Comparable<Appointment> {
 		System.out.format("%5tl:%tM %tp%n", appointmentDate, appointmentDate, appointmentDate);
 		System.out.printf("        %s%n", title);        
 		System.out.printf("        %s%n", description);
+
 	}
 
 	@Override
 	public String toString() {
-		return appointmentDate.toString();
+		String s1 = String.format("%5tl:%tM %tp%n", appointmentDate, appointmentDate, appointmentDate);
+		String s2 = String.format("        %s%n", title);
+		String s3 = String.format("        %s%n", description);
+		return s1 + s2 + s3;
+	}
+
+	public static void main (String... args) {
+		Appointment myApp = new Onetime("title", "description", 1, 1, 2017, 8, 0, true);
+		System.out.println(myApp);
 	}
 
 	//TODO: Add setters for the year, month, day, hour, minute, AM/PM
