@@ -17,8 +17,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.event.*;
 import javax.swing.*;
 
-
-
 public class AppointmentBookGUI extends JFrame implements ItemListener, ActionListener {	
 
 	private File workingFile;
@@ -32,9 +30,6 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 	private JTextArea schedule;
 	private JButton showSchedule;
 	
-	private boolean connectionSuccessful = false;
-	//private FileOutputStream out;
-	//private FileInputStream in;
 	private File myFile;
 
 	private AppointmentBook myAppBook;
@@ -72,6 +67,8 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		// INITIAL
 
 		JButton createNewFile = new JButton("Create new file.");
+		
+		// Adds action listener to create a new .ser file in the working directory
 		createNewFile.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent ae) {
@@ -105,15 +102,38 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		});
 
 		JButton openOldFile = new JButton("Open previous file.");
+
+		//TODO: Add implementation for this method.
 		openOldFile.addActionListener(new ActionListener() {
 			@Override 
 			public void actionPerformed(ActionEvent ae) {	
-				fileName = JOptionPane.showInputDialog("What will the file name be?") + ".txt";
-				/*try {
+				ObjectInputStream in = null;
+				FileInputStream fin = null;
+
+				try {
+					fileName = JOptionPane.showInputDialog("What will the file name be?") + ".ser";
+					myFile = new File(fileName);
+					myAppBook = new AppointmentBook();
 					
+					fin = new FileInputStream(myFile);
+					in = new ObjectInputStream(fin);
+					
+					myAppBook = (AppointmentBook) in.readObject();
+					
+					//TODO: verify successful connection 
 				} catch (FileNotFoundException e) {
-					JOptionPane.showMessageDialog(initial,"File not found");
-				}*/	
+					JOptionPane.showMessageDialog(initial, "Error. Please try again.");
+				} catch (ClassNotFoundException e) {
+					JOptionPane.showMessageDialog(initial, "Error. Please try again.");
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(initial, "Error. Please try again.");
+				} finally {
+					try {
+						if (in != null) in.close();
+					} catch (IOException e) {
+						JOptionPane.showMessageDialog(initial, "Error. Please try again.");
+					}
+				}
 			//fileName = JOptionPane.showInputDialog("What is the name of this file? Please enter the absolute path of the file.") + ".txt";
 			}
 		});
@@ -171,7 +191,8 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		
 		JPanel textPanel = new JPanel(new BorderLayout());
 		schedule = new JTextArea("Test");
-		textPanel.add(schedule);
+		JScrollPane tempScrollPane = new JScrollPane(schedule);
+		textPanel.add(tempScrollPane);
 		show.add(textPanel);
 
 		// add the schedule button
@@ -204,8 +225,8 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 					System.out.println(eDay);
 					System.out.println(sMonth);
 					System.out.println(eMonth);
-					String str = myAppBook.toString(sYear, eYear, sDay, eDay, sMonth, eMonth);
-					System.out.println(str);
+					//String str = myAppBook.toString(sYear, eYear, sDay, eDay, sMonth, eMonth);
+					//System.out.println(str);
 					//myAppBook.displayAppointmentsFromTo(sYear, eYear, sDay, eDay, sMonth, eMonth);
 					schedule.setText(myAppBook.toString(
 						Integer.parseInt((String)entryBoxes[STARTING_YEARS].getSelectedItem()),
