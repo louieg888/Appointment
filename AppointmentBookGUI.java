@@ -21,9 +21,10 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 	
 	
 	private JPanel initial, show, add;
-	private JTextField titleField, descriptionField;
-	private JTextField minuteField, hourField, dayField, monthField, yearField;
-	private JComboBox amOrPm, eventTypeOptions;
+	private static JTextField titleField;
+	private static JTextField descriptionField;
+	private static JTextField minuteField, hourField, dayField, monthField, yearField;
+	private static JComboBox amOrPm, eventTypeOptions;
 	private File workingFile;
 	private String fileName;
 	private String mainFilePath;
@@ -38,7 +39,6 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 	private File myFile;
 
 	private AppointmentBook myAppBook;
-
 
 	private static final int STARTING_MONTHS = 0;
 	private static final int ENDING_MONTHS = 1;
@@ -229,7 +229,7 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		entryFields.add(titleField);
 
 		entryFields.add(new JLabel("Description: "));
-		JTextField descriptionField = new JTextField();
+		descriptionField = new JTextField();
 		entryFields.add(descriptionField);
 	//	entryFields.add(new JLabel("test"));
 	//	entryFields.add(new JLabel("test2"));	
@@ -269,7 +269,7 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		JButton submitButton = new JButton("Submit");
 		entryFields.add(submitButton);
 		entryFields.add(clearButton);
-		clearButton.addActionListener(new ClearButtonListener());/*{
+		clearButton.addActionListener(new ClearButtonListener()); /*{
 			@Override public void actionPerformed(ActionEvent ae) {
 				titleField.setText("");
 				descriptionField.setText("");
@@ -614,11 +614,15 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		}	
 	
 		public boolean dateIsVerified() {
-			try { 
+			boolean debug = true;
+			try {System.out.println("here"); 
 				int year = Integer.parseInt(yearField.getText());
+				System.out.println("here2");
 				int month = AppointmentBookGUI.monthToNumber(monthField.getText());
+				System.out.println("here3");
 				int day = Integer.parseInt(dayField.getText());
 				YearMonth ym = YearMonth.of(year, month);
+				if (debug) System.out.println("Year of " + year + " and month of " + month + " and day of " + day + "is valid: " + ym.isValidDay(day));
 				return ym.isValidDay(day);
 			} catch (NumberFormatException e) {
 				return false;
@@ -630,7 +634,11 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		}
 
 		public boolean descriptionIsVerified() {
-			return (descriptionField.getText() != null) && (descriptionField.getText() != "");
+			try {
+				return (descriptionField.getText() != null) && (descriptionField.getText() != "");}
+			catch (NullPointerException e) {
+				System.out.println("Desc field: " + descriptionField);
+			} return false;
 		}
 
 		public boolean amPmIsVerified() {
