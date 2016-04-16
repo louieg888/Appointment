@@ -18,7 +18,12 @@ import javax.swing.event.*;
 import javax.swing.*;
 
 public class AppointmentBookGUI extends JFrame implements ItemListener, ActionListener {	
-
+	
+	
+	private JPanel initial, show, add;
+	private JTextField titleField, descriptionField;
+	private JTextField minuteField, hourField, dayField, monthField, yearField;
+	private JComboBox amOrPm, eventTypeOptions;
 	private File workingFile;
 	private String fileName;
 	private String mainFilePath;
@@ -44,62 +49,17 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 	private String startDay, endDay, startYear, endYear, startMonth, endMonth;
 
 	public AppointmentBookGUI(AppointmentBook... ab) {	
-	//this.appBook = ab[0];
-		navigation = new JTabbedPane();
-		this.getContentPane().add(navigation);		
-		this.setTitle("Appointment Book");
-		this.setSize(600, 400);
-		this.setDefaultCloseOperation(EXIT_ON_CLOSE);		
-		
-		JPanel initial = new JPanel(new GridLayout(2, 1));
-		JPanel show = new JPanel(new GridLayout(3, 1));
-		JPanel add = new JPanel(new GridLayout(1,1));
-		//JPanel remove = new JPanel(new FlowLayout());
-
-		navigation.addTab("Start Here", initial);
-		navigation.addTab("Show Appointments", show);
-		navigation.addTab("Add Appointments", add);
 		//navigation.addTab("Remove Appointments", remove);
-
-		// INITIAL
-		//
-		//
-		// INITIAL
-
-		JButton createNewFile = new JButton("Create new file.");
+		initializeFrame();
 		
-		// Adds action listener to create a new .ser file in the working directory
-		createNewFile.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent ae) {
-				ObjectOutputStream out = null;
-				FileOutputStream fos = null;
-
-				try {
-					fileName = JOptionPane.showInputDialog("What will the file name be?") + ".ser";
-					myFile = new File(fileName);
-					boolean fileCreationSuccessful = myFile.createNewFile();
-					myAppBook = new AppointmentBook();
-					
-					fos = new FileOutputStream(myFile);
-					out = new ObjectOutputStream(fos);
-					
-					out.writeObject(myAppBook);
-
-					//TODO: check if the file creation was successful.
-				} catch (FileNotFoundException e) {
-					JOptionPane.showMessageDialog(initial, "Error. Please try again.");
-				} catch (IOException e) {
-					JOptionPane.showMessageDialog(initial, "Error. Please try again.");
-				} finally {
-					try {
-						if (out != null) out.close();
-					} catch (IOException e) {
-
-					}
-				}
-			}
-		});
+		// INITIAL
+		//
+		//
+		// INITIAL
+		
+		JButton createNewFile = new JButton("Create new file.");	
+		
+		createNewFile.addActionListener(new CreateFileListener());		
 
 		JButton openOldFile = new JButton("Open previous file.");
 
@@ -265,54 +225,54 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		JPanel entryFields = new JPanel(new GridLayout(10, 2));
 
 		entryFields.add(new JLabel("Title: "));
-		JTextField titleField = new JTextField();
+		titleField = new JTextField();
 		entryFields.add(titleField);
 
 		entryFields.add(new JLabel("Description: "));
-		JTextField descriptionArea = new JTextField();
-		entryFields.add(descriptionArea);
+		JTextField descriptionField = new JTextField();
+		entryFields.add(descriptionField);
 	//	entryFields.add(new JLabel("test"));
 	//	entryFields.add(new JLabel("test2"));	
 		
 		entryFields.add(new JLabel("Event Type: "));
-		JComboBox eventTypeOptions = new JComboBox(new String[] {"Select an event type", "", "Onetime", "Monthly", "Daily"});
+		eventTypeOptions = new JComboBox(new String[] {"Select an event type", "", "Onetime", "Monthly", "Daily"});
 		entryFields.add(eventTypeOptions);
 
 		entryFields.add(new JLabel("Day: "));
-		JTextField dayField = new JTextField();
+		dayField = new JTextField();
 		dayField.setEditable(true);
 		entryFields.add(dayField);
 
 		entryFields.add(new JLabel("Month: "));
-		JTextField monthField = new JTextField();
+		monthField = new JTextField();
 		monthField.setEditable(true);
 		entryFields.add(monthField);
 
 		entryFields.add(new JLabel("Year: "));
-		JTextField yearField = new JTextField(Calendar.getInstance().get(Calendar.YEAR) + "");
+		yearField = new JTextField(Calendar.getInstance().get(Calendar.YEAR) + "");
 		yearField.setEditable(true);
 		entryFields.add(yearField);
 
 		entryFields.add(new JLabel("Hour: "));
-		JTextField hourField = new JTextField();
+		hourField = new JTextField();
 		entryFields.add(hourField);
 
 		entryFields.add(new JLabel("Minute: "));
-		JTextField minuteField = new JTextField(); 
+		minuteField = new JTextField(); 
 		entryFields.add(minuteField);
 
 		entryFields.add(new JLabel("AM or PM: "));
-		JComboBox amOrPm = new JComboBox(new String[] {"Select AM or PM", "", "AM", "PM"});
+		amOrPm = new JComboBox(new String[] {"Select AM or PM", "", "AM", "PM"});
 		entryFields.add(amOrPm);
 		
 		JButton clearButton = new JButton("Clear");
 		JButton submitButton = new JButton("Submit");
 		entryFields.add(submitButton);
 		entryFields.add(clearButton);
-		clearButton.addActionListener(new ActionListener() {
+		clearButton.addActionListener(new ClearButtonListener());/*{
 			@Override public void actionPerformed(ActionEvent ae) {
 				titleField.setText("");
-				descriptionArea.setText("");
+				descriptionField.setText("");
 				yearField.setText(Calendar.getInstance().get(Calendar.YEAR) + "");
 				monthField.setText("");
 				dayField.setText("");
@@ -321,16 +281,16 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 				amOrPm.setSelectedIndex(0);
 				eventTypeOptions.setSelectedIndex(0);
 			}
-		});
+		});*/
 
-		submitButton.addActionListener(new ActionListener() {
+		submitButton.addActionListener(new SubmitButtonListener()); /*{
 			@Override 
 			public void actionPerformed(ActionEvent ae) {
 				boolean dataVerified = allFieldsVerified();
 				System.out.println(dataVerified);
 				if (dataVerified) {
 					String title = titleField.getText();
-					String description = descriptionArea.getText();
+					String description = descriptionField.getText();
 					int year = Integer.parseInt(yearField.getText());
 					int month = AppointmentBookGUI.monthToNumber(monthField.getText());
 					int day = Integer.parseInt(dayField.getText());
@@ -384,7 +344,7 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 					} 
 					
 					titleField.setText("");
-					descriptionArea.setText("");
+					descriptionField.setText("");
 					yearField.setText(Calendar.getInstance().get(Calendar.YEAR) + "");
 					monthField.setText("");
 					dayField.setText("");
@@ -435,7 +395,7 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 			}
 
 			public boolean descriptionIsVerified() {
-				return (descriptionArea.getText() != null) && (descriptionArea.getText() != "");
+				return (descriptionField.getText() != null) && (descriptionField.getText() != "");
 			}
 
 			public boolean amPmIsVerified() {
@@ -465,14 +425,26 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 					&& amPmIsVerified() 
 					&& eventTypeOptionsIsVerified();
 			}
-		});
+		});*/
 
 		add.add(entryFields);
 		setVisible(true);
 	}
 	
-	public void initializeShowTab() {
+	public void initializeFrame() {
+		navigation = new JTabbedPane();
+		this.getContentPane().add(navigation);		
+		this.setTitle("Appointment Book");
+		this.setSize(600, 400);
+		this.setDefaultCloseOperation(EXIT_ON_CLOSE);		
+		
+		initial = new JPanel(new GridLayout(2, 1));
+		show = new JPanel(new GridLayout(3, 1));
+		add = new JPanel(new GridLayout(1,1));
 
+		navigation.addTab("Start Here", initial);
+		navigation.addTab("Show Appointments", show);
+		navigation.addTab("Add Appointments", add);
 	}
 
 	public static void main(String[] args) {
@@ -505,6 +477,223 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 		}
 	}
 
+	/**
+	 * Clears all entries under the "add" tab.
+	 * To be used after submission or when the clear button is pressed.
+	 */
+
+	public static void clearEntries() {
+		titleField.setText("");
+		descriptionField.setText("");
+		yearField.setText(Calendar.getInstance().get(Calendar.YEAR) + "");
+		monthField.setText("");
+		dayField.setText("");
+		hourField.setText("");
+		minuteField.setText("");
+		amOrPm.setSelectedIndex(0);
+		eventTypeOptions.setSelectedIndex(0);
+	}
+
+	/**
+	 * Action listener for the "clear" button.
+	 */
+
+	class ClearButtonListener implements ActionListener {	
+		@Override 
+		public void actionPerformed(ActionEvent ae) {
+			titleField.setText("");
+			descriptionField.setText("");
+			yearField.setText(Calendar.getInstance().get(Calendar.YEAR) + "");
+			monthField.setText("");
+			dayField.setText("");
+			hourField.setText("");
+			minuteField.setText("");
+			amOrPm.setSelectedIndex(0);
+			eventTypeOptions.setSelectedIndex(0);
+		}
+	}
+
+	/**
+	 * Checks for a click on the submit button, and then opens the object located in myFile
+	 * to add the new event to. Also verifies the data of the submit boxes. 
+	 */
+
+	class SubmitButtonListener implements ActionListener {	
+		@Override 
+		public void actionPerformed(ActionEvent ae) {
+			boolean dataVerified = allFieldsVerified();
+			System.out.println(dataVerified);
+			if (dataVerified) {
+				String title = titleField.getText();
+				String description = descriptionField.getText();
+				int year = Integer.parseInt(yearField.getText());
+				int month = AppointmentBookGUI.monthToNumber(monthField.getText());
+				int day = Integer.parseInt(dayField.getText());
+				int hour = Integer.parseInt(hourField.getText());
+				int minute = Integer.parseInt(minuteField.getText());
+				boolean isAM = (amOrPm.getSelectedItem().equals("AM"))? true : false;
+
+				if (eventTypeOptions.getSelectedItem().equals("Onetime")) {
+					
+				} else if (eventTypeOptions.getSelectedItem().equals("Monthly")) {
+					FileOutputStream fos = null;
+					ObjectOutputStream out = null;
+					FileInputStream fis = null;
+					ObjectInputStream in = null;
+					System.out.println("File connection: " + myFile.exists());
+
+					try {
+						fis = new FileInputStream(myFile);
+						in = new ObjectInputStream(fis);
+						myAppBook = (AppointmentBook) in.readObject();
+						myAppBook.add(new Monthly(title, description, day, hour, minute, isAM));
+						
+						fos = new FileOutputStream(myFile);
+						out = new ObjectOutputStream(fos);
+						out.writeObject(myAppBook);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					} catch (ClassNotFoundException e) {
+					
+					} finally {
+						if (out != null) {
+							try {
+								out.close();
+							} catch (IOException e) {
+							
+							}
+						}
+
+						if (in != null) {
+							try {
+								in.close();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+					}	
+				} else if (eventTypeOptions.getSelectedItem().equals("Daily")) {
+						
+				} 
+				
+				titleField.setText("");
+				descriptionField.setText("");
+				yearField.setText(Calendar.getInstance().get(Calendar.YEAR) + "");
+				monthField.setText("");
+				dayField.setText("");
+				hourField.setText("");
+				minuteField.setText("");
+				amOrPm.setSelectedIndex(0);
+				eventTypeOptions.setSelectedIndex(0);
+
+				JOptionPane.showMessageDialog(add, "Successful submission!");
+			}
+
+		}
+
+		public boolean minuteFieldIsVerified() {
+			try {
+				int minutes = Integer.parseInt(minuteField.getText());
+				return minutes < 60 && minutes >= 0;
+			} catch (NumberFormatException e) {
+				JOptionPane.showMessageDialog(add, "Invalid minute field.");
+				return false;
+			}
+		}
+
+		public boolean hourFieldIsVerified() {
+			try {
+				int hours = Integer.parseInt(hourField.getText());
+				return hours <= 12 && hours > 0;
+			} catch (NumberFormatException e) {
+				JOptionPane.showMessageDialog(add, "Invalid hour field.");
+				return false;
+			}
+		}	
+	
+		public boolean dateIsVerified() {
+			try { 
+				int year = Integer.parseInt(yearField.getText());
+				int month = AppointmentBookGUI.monthToNumber(monthField.getText());
+				int day = Integer.parseInt(dayField.getText());
+				YearMonth ym = YearMonth.of(year, month);
+				return ym.isValidDay(day);
+			} catch (NumberFormatException e) {
+				return false;
+			}
+		}
+
+		public boolean titleIsVerified() {
+			return (titleField.getText() != null) && (titleField.getText() != "");
+		}
+
+		public boolean descriptionIsVerified() {
+			return (descriptionField.getText() != null) && (descriptionField.getText() != "");
+		}
+
+		public boolean amPmIsVerified() {
+			return amOrPm.getSelectedIndex() != 0 && amOrPm.getSelectedIndex() != 1;
+		}
+
+		public boolean eventTypeOptionsIsVerified() {
+			return eventTypeOptions.getSelectedIndex() != 0 && eventTypeOptions.getSelectedIndex() != 1; 
+		}
+
+		public boolean allFieldsVerified() {
+			boolean debug = true;
+			if (debug) {
+				System.out.println(minuteFieldIsVerified());
+				System.out.println(hourFieldIsVerified());
+				System.out.println(dateIsVerified());
+				System.out.println(titleIsVerified());
+				System.out.println(descriptionIsVerified());
+				System.out.println(amPmIsVerified());
+				System.out.println(eventTypeOptionsIsVerified());
+			}
+			return minuteFieldIsVerified() 
+				&& hourFieldIsVerified() 
+				&& dateIsVerified()
+				&& titleIsVerified() 
+				&& descriptionIsVerified() 
+				&& amPmIsVerified() 
+				&& eventTypeOptionsIsVerified();
+		}
+	}
+	
+	class CreateFileListener implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent ae) {
+			ObjectOutputStream out = null;
+			FileOutputStream fos = null;
+
+			try {
+				fileName = JOptionPane.showInputDialog("What will the file name be?") + ".ser";
+				myFile = new File(fileName);
+				boolean fileCreationSuccessful = myFile.createNewFile();
+				myAppBook = new AppointmentBook();
+				
+				fos = new FileOutputStream(myFile);
+				out = new ObjectOutputStream(fos);
+				
+				out.writeObject(myAppBook);
+
+				//TODO: check if the file creation was successful.
+			} catch (FileNotFoundException e) {
+				JOptionPane.showMessageDialog(initial, "Error. Please try again.");
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(initial, "Error. Please try again.");
+			} finally {
+				try {
+					if (out != null) out.close();
+				} catch (IOException e) {
+
+				}
+			}
+		}
+	}
+	
 	@Override 
 	public void itemStateChanged(ItemEvent e) throws NullPointerException {
 		String s = (String) e.getItem();
@@ -569,10 +758,8 @@ public class AppointmentBookGUI extends JFrame implements ItemListener, ActionLi
 			YearMonth startYM = YearMonth.of(startYearInt, startMonthInt);
 			YearMonth endYM = YearMonth.of(endYearInt, endMonthInt);
 			if (!(startYM.isValidDay(startDayInt) && endYM.isValidDay(endDayInt))) {System.out.println("here!");return false;}
-			//System.out.println("Here4");
 			return (startYM.isBefore(endYM));
 		} catch (NumberFormatException e) {
-			//System.out.println("here 2");
 			return false;
 		}
 	}
